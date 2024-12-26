@@ -1,4 +1,5 @@
 #include <type_traits>
+#include <iostream>
 
 #ifdef META_STATIC_ASSERT
 #include <tuple>  // use std::tuple for static testing
@@ -6,6 +7,10 @@
 
 namespace meta
 {
+    template <typename T>
+    inline void print_type_name() {
+        std::cout << __PRETTY_FUNCTION__ << std::endl;
+    }
     /////////////////////// has type ////////////////////////////
     template <typename T>
     struct has_type
@@ -102,7 +107,6 @@ namespace meta
     template <typename LIST, typename T0>
     using push_front_t = typename push_front<LIST, T0>::type;
 
-
 #ifdef META_STATIC_ASSERT
     static_assert(std::is_same_v<std::tuple<int>, push_front_t<std::tuple<>, int>>);
     static_assert(std::is_same_v<std::tuple<char, float, int>, push_front_t<std::tuple<float, int>, char>>);
@@ -127,6 +131,38 @@ namespace meta
     static_assert(std::is_same_v<float, back_t<std::tuple<float, char, int, int, int, float>>>);
 #endif
 
+    //////////////////////// pop back ////////////////////////
+    template <typename>
+    struct pop_back;
+
+    template <typename, typename>
+    struct pop_back_impl;
+
+    template <template <typename...> class CUR, typename CUR_T0, typename... CUR_T1toN, template <typename...> class RET, typename... RET_T0toN>
+    struct pop_back_impl<
+        CUR<CUR_T0, CUR_T1toN...>,
+        RET<RET_T0toN...>
+    >: pop_back_impl<
+        CUR<CUR_T1toN...>,
+        RET<RET_T0toN..., CUR_T0>
+    > {};
+
+    template <template <typename...> class CUR, typename CUR_T0, template <typename...> class RET, typename... RET_T0toN>
+    struct pop_back_impl<
+        CUR<CUR_T0>,
+        RET<RET_T0toN...>
+    >: has_type<RET<RET_T0toN...>> {};
+
+    template <template <typename...> class CUR, typename... Ts>
+    struct pop_back<CUR<Ts...>>: pop_back_impl<CUR<Ts...>, CUR<>> {};
+
+    template <typename T>
+    using pop_back_t = typename pop_back<T>::type;
+
+#ifdef META_STATIC_ASSERT
+    static_assert(std::is_same_v<std::tuple<float, char>, pop_back_t<std::tuple<float, char, int>>>);
+    static_assert(std::is_same_v<std::tuple<float, char, int>, pop_back_t<std::tuple<float, char, int, long>>>);
+#endif
 
     //////////////////////// at //////////////////////////////
     template <typename, int>
