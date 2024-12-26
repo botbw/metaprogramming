@@ -1,3 +1,6 @@
+#ifndef TUPLE_HPP
+#define TUPLE_HPP
+
 #include <type_traits>
 #include <iostream>
 
@@ -218,4 +221,22 @@ namespace meta
     static_assert(contain_type<float, std::tuple<int, bool, char>>::type::value == false);
     static_assert(contain_type<int, std::tuple<>>::type::value == false);
 #endif
+
+    template <typename...>
+    struct tuple;
+
+    template <>
+    struct tuple<> {};
+
+    template <typename T0, typename... T1toN>
+    struct tuple<T0, T1toN...>: tuple<T1toN...>
+    {
+        T0 value;
+        explicit constexpr tuple(T0 value, T1toN... t1ton): tuple<T1toN...>(t1ton...), value(value) {}
+    };
+
+    template <typename... Ts>
+    tuple(Ts...) -> tuple<Ts...>;
 }
+
+#endif
