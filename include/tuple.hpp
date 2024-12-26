@@ -1,12 +1,11 @@
 #include <type_traits>
 
 #ifdef META_STATIC_ASSERT
-#include <tuple>
+#include <tuple>  // use std::tuple for static testing
 #endif
 
 namespace meta
 {
-
     /////////////////////// has type ////////////////////////////
     template <typename T>
     struct has_type
@@ -92,6 +91,43 @@ namespace meta
     static_assert(std::is_same_v<std::tuple<bool, char>, pop_front_t<std::tuple<int, bool, char>>>);
     static_assert(std::is_same_v<std::tuple<char>, pop_front_t<std::tuple<bool, char>>>);
     static_assert(std::is_same_v<std::tuple<>, pop_front_t<std::tuple<char>>>);
+#endif
+
+    //////////////////////// back ////////////////////////////
+    template <typename>
+    struct back;
+
+    template <template <typename...> class T_CLASS, typename T0, typename... T1toN>
+    struct back<T_CLASS<T0, T1toN...>>: back<T_CLASS<T1toN...>> {};
+
+    template <template <typename...> class T_CLASS, typename TN>
+    struct back<T_CLASS<TN>>: has_type<TN> {};
+
+    template <typename T>
+    using back_t = typename back<T>::type;
+
+#ifdef META_STATIC_ASSERT
+    static_assert(std::is_same_v<int, back_t<std::tuple<float, char, int>>>);
+    static_assert(std::is_same_v<float, back_t<std::tuple<float, char, int, int, int, float>>>);
+#endif
+
+
+    //////////////////////// at //////////////////////////////
+    template <typename, int>
+    struct at;
+
+    template <template <typename...> class T_CLASS, typename T0, typename... T1toN, int N>
+    struct at<T_CLASS<T0, T1toN...>, N>: at<T_CLASS<T1toN...>, N - 1> {};
+
+    template <template <typename...> class T_CLASS, typename T0, typename... T1toN>
+    struct at<T_CLASS<T0, T1toN...>, 0>: has_type<T0> {};
+
+    template <typename T, int N>
+    using at_t = typename at<T, N>::type;
+
+#ifdef META_STATIC_ASSERT
+    static_assert(std::is_same_v<int, at_t<std::tuple<int, float, int, char>, 0>>);
+    static_assert(std::is_same_v<int, at_t<std::tuple<int, float, int, char>, 2>>);
 #endif
 
     //////////////////////// contain type /////////////////////////
