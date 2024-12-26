@@ -2,15 +2,17 @@
 #include <iostream>
 
 #ifdef META_STATIC_ASSERT
-#include <tuple>  // use std::tuple for static testing
+#include <tuple> // use std::tuple for static testing
 #endif
 
 namespace meta
 {
     template <typename T>
-    inline void print_type_name() {
+    inline void print_type_name()
+    {
         std::cout << __PRETTY_FUNCTION__ << std::endl;
     }
+
     /////////////////////// has type ////////////////////////////
     template <typename T>
     struct has_type
@@ -102,7 +104,9 @@ namespace meta
     struct push_front;
 
     template <template <typename...> class T_CLASS, typename... T1toN, typename T0>
-    struct push_front<T_CLASS<T1toN...>, T0>: has_type<T_CLASS<T0, T1toN...>> {};
+    struct push_front<T_CLASS<T1toN...>, T0> : has_type<T_CLASS<T0, T1toN...>>
+    {
+    };
 
     template <typename LIST, typename T0>
     using push_front_t = typename push_front<LIST, T0>::type;
@@ -118,10 +122,14 @@ namespace meta
     struct back;
 
     template <template <typename...> class T_CLASS, typename T0, typename... T1toN>
-    struct back<T_CLASS<T0, T1toN...>>: back<T_CLASS<T1toN...>> {};
+    struct back<T_CLASS<T0, T1toN...>> : back<T_CLASS<T1toN...>>
+    {
+    };
 
     template <template <typename...> class T_CLASS, typename TN>
-    struct back<T_CLASS<TN>>: has_type<TN> {};
+    struct back<T_CLASS<TN>> : has_type<TN>
+    {
+    };
 
     template <typename T>
     using back_t = typename back<T>::type;
@@ -141,20 +149,22 @@ namespace meta
     template <template <typename...> class CUR, typename CUR_T0, typename... CUR_T1toN, template <typename...> class RET, typename... RET_T0toN>
     struct pop_back_impl<
         CUR<CUR_T0, CUR_T1toN...>,
-        RET<RET_T0toN...>
-    >: pop_back_impl<
-        CUR<CUR_T1toN...>,
-        RET<RET_T0toN..., CUR_T0>
-    > {};
+        RET<RET_T0toN...>> : pop_back_impl<CUR<CUR_T1toN...>,
+                                           RET<RET_T0toN..., CUR_T0>>
+    {
+    };
 
     template <template <typename...> class CUR, typename CUR_T0, template <typename...> class RET, typename... RET_T0toN>
     struct pop_back_impl<
         CUR<CUR_T0>,
-        RET<RET_T0toN...>
-    >: has_type<RET<RET_T0toN...>> {};
+        RET<RET_T0toN...>> : has_type<RET<RET_T0toN...>>
+    {
+    };
 
     template <template <typename...> class CUR, typename... Ts>
-    struct pop_back<CUR<Ts...>>: pop_back_impl<CUR<Ts...>, CUR<>> {};
+    struct pop_back<CUR<Ts...>> : pop_back_impl<CUR<Ts...>, CUR<>>
+    {
+    };
 
     template <typename T>
     using pop_back_t = typename pop_back<T>::type;
@@ -169,10 +179,14 @@ namespace meta
     struct at;
 
     template <template <typename...> class T_CLASS, typename T0, typename... T1toN, int N>
-    struct at<T_CLASS<T0, T1toN...>, N>: at<T_CLASS<T1toN...>, N - 1> {};
+    struct at<T_CLASS<T0, T1toN...>, N> : at<T_CLASS<T1toN...>, N - 1>
+    {
+    };
 
     template <template <typename...> class T_CLASS, typename T0, typename... T1toN>
-    struct at<T_CLASS<T0, T1toN...>, 0>: has_type<T0> {};
+    struct at<T_CLASS<T0, T1toN...>, 0> : has_type<T0>
+    {
+    };
 
     template <typename T, int N>
     using at_t = typename at<T, N>::type;
@@ -187,14 +201,15 @@ namespace meta
     struct contain_type;
 
     template <typename TYPE, template <typename...> class T_CLASS>
-    struct contain_type<TYPE, T_CLASS<>>: std::false_type {};
+    struct contain_type<TYPE, T_CLASS<>> : std::false_type
+    {
+    };
 
     template <typename TYPE, template <typename...> class T_CLASS, typename T0, typename... T1toN>
     struct contain_type<TYPE, T_CLASS<T0, T1toN...>> : static_if<
                                                            /* COND */ std::is_same_v<TYPE, T0>,
                                                            /* THEN */ std::true_type,
-                                                           /* ELSE */ typename contain_type<TYPE, T_CLASS<T1toN...>>::type
-                                                        >
+                                                           /* ELSE */ typename contain_type<TYPE, T_CLASS<T1toN...>>::type>
     {
     };
 
