@@ -92,6 +92,22 @@ namespace meta
     static_assert(std::is_same_v<std::tuple<char>, pop_front_t<std::tuple<bool, char>>>);
     static_assert(std::is_same_v<std::tuple<>, pop_front_t<std::tuple<char>>>);
 #endif
+    /////////////////////// push front ///////////////////////////
+    template <typename, typename>
+    struct push_front;
+
+    template <template <typename...> class T_CLASS, typename... T1toN, typename T0>
+    struct push_front<T_CLASS<T1toN...>, T0>: has_type<T_CLASS<T0, T1toN...>> {};
+
+    template <typename LIST, typename T0>
+    using push_front_t = typename push_front<LIST, T0>::type;
+
+
+#ifdef META_STATIC_ASSERT
+    static_assert(std::is_same_v<std::tuple<int>, push_front_t<std::tuple<>, int>>);
+    static_assert(std::is_same_v<std::tuple<char, float, int>, push_front_t<std::tuple<float, int>, char>>);
+    static_assert(std::is_same_v<std::tuple<char, float, int>, push_front_t<std::tuple<float, int>, int>> == false);
+#endif
 
     //////////////////////// back ////////////////////////////
     template <typename>
